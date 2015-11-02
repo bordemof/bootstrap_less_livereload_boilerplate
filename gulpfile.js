@@ -1,5 +1,7 @@
 // Load Gulp
 var gulp    = require('gulp'),
+    livereload = require('gulp-livereload'),
+    connect = require('gulp-connect');
     gutil   = require('gulp-util');
     plugins = require('gulp-load-plugins')();
 
@@ -11,7 +13,8 @@ gulp.task('squish-jquery', function() {
   return gulp.src('assets/js/libs/**/*.js')
     .pipe(plugins.uglify())
     .pipe(plugins.concat('jquery.plugins.min.js'))
-    .pipe(gulp.dest('build'));
+    .pipe(gulp.dest('build'))
+    .pipe(connect.reload());
 });
 
 // Minify Custom JS: Run manually with: "gulp build-js"
@@ -21,7 +24,8 @@ gulp.task('build-js', function() {
     .pipe(plugins.jshint.reporter('jshint-stylish'))
     .pipe(plugins.uglify())
     .pipe(plugins.concat('scripts.min.js'))
-    .pipe(gulp.dest('build'));
+    .pipe(gulp.dest('build'))
+    .pipe(connect.reload());
 });
 
 // Less to CSS: Run manually with: "gulp build-css"
@@ -50,12 +54,24 @@ gulp.task('build-css', function() {
             }
         ))
         .pipe(plugins.cssmin())
-        .pipe(gulp.dest('build')).on('error', gutil.log);
+        .pipe(gulp.dest('build')).on('error', gutil.log)
+        .pipe(connect.reload());
+});
+
+gulp.task('html', function() {
+  return gulp.src('*.html')
+    .pipe(connect.reload());
+});
+
+gulp.task('webserver', function() {
+  connect.server({ port: 8080, livereload: true });
 });
 
 // Default task
 gulp.task('watch', function() {
+    gulp.start('webserver');
     gulp.watch('assets/js/libs/**/*.js', ['squish-jquery']);
     gulp.watch('assets/js/*.js', ['build-js']);
     gulp.watch('assets/less/**/*.less', ['build-css']);
+    gulp.watch('*.html',['html'])
 });
